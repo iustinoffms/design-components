@@ -1,7 +1,16 @@
 import { useContext } from "react";
 import { ThemeContext } from "./contexts/ThemeContext";
+import { SpeakerFilterContext } from "./contexts/SpeakerFilterContext";
 
-function Toolbar({ showSessions, setShowSessions }) {
+function Toolbar() {
+  const {
+    showSessions,
+    setShowSessions,
+    eventYear,
+    setEventYear,
+    setSearchName,
+    EVENT_YEARS,
+  } = useContext(SpeakerFilterContext);
   const { theme, setTheme } = useContext(ThemeContext);
   const onChangeSessionHandler = (e) => setShowSessions(e.target.checked);
   const onChangeThemeHandler = (e) => setTheme(e.target.value);
@@ -31,6 +40,39 @@ function Toolbar({ showSessions, setShowSessions }) {
                 >
                   <option value="light">Light</option>
                   <option value="dark">Dark</option>
+                </select>
+              </label>
+            </li>
+            <li>
+              <div className="input-group">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="search"
+                  onChange={(e) => setSearchName(e.target.value)}
+                />
+                <div className="input-group-append">
+                  <button className="btn btn-secondary" type="button">
+                    <i className="fa fa-search" />
+                  </button>
+                </div>
+              </div>
+            </li>
+            <li className="d-flex flex-column flex-md-row">
+              <strong>Year</strong>
+              <label className="dropmenu">
+                <select
+                  className="form-control"
+                  value={eventYear}
+                  onChange={({ currentTarget }) =>
+                    setEventYear(currentTarget.value)
+                  }
+                >
+                  {EVENT_YEARS.map((year) => (
+                    <option value={year} key={year}>
+                      {year}
+                    </option>
+                  ))}
                 </select>
               </label>
             </li>

@@ -1,58 +1,59 @@
 import { useState } from "react";
+import { useContext } from "react";
+import { SpeakerFilterContext } from "./contexts/SpeakerFilterContext";
 
-function Speaker({
-  id,
-  first,
-  last,
-  bio,
-  company,
-  twitterHandle,
-  favorite,
-  sessions,
-  showSessions,
-  onFavoriteToggle,
-}) {
+import { SpeakerProvider, SpeakerContext } from "./contexts/SpeakerContext";
+
+function Speaker({ speaker, updatedSpeakerInfo }) {
+  const { id, first, last, sessions } = speaker;
+  const { showSessions, eventYear } = useContext(SpeakerFilterContext);
   return (
-    <div
-      key={id}
-      className="col-xs-12 col-sm-12 col-md-6 col-lg-4 col-sm-12 col-xs-12 "
-    >
-      <div className="card card-height p-4 mt-4 ">
-        <SpeakerImage id={id} last={last} firs={first} />
-        <SpeakerInfo
-          first={first}
-          last={last}
-          bio={bio}
-          company={company}
-          favorite={favorite}
-          twitterHandle={twitterHandle}
-          onFavoriteToggle={onFavoriteToggle}
-        />
+    <SpeakerProvider speaker={speaker} updatedSpeakerInfo={updatedSpeakerInfo}>
+      <div
+        key={id}
+        className="col-xs-12 col-sm-12 col-md-6 col-lg-4 col-sm-12 col-xs-12 "
+      >
+        <div className="card card-height p-4 mt-4 ">
+          <SpeakerImage />
+          <SpeakerInfo />
+        </div>
+        {showSessions === true
+          ? sessions
+              .filter((session) => session.eventYear === eventYear)
+              .map((session) => (
+                <div className="session w-100" key={session.id}>
+                  <Sessions {...session} />
+                </div>
+              ))
+          : null}
       </div>
-      {showSessions === true ? <Sessions {...sessions[0]} /> : null}
-    </div>
+    </SpeakerProvider>
   );
 }
 
-function SpeakerImage(props) {
+function SpeakerImage() {
+  const speakerObject = useContext(SpeakerContext);
+  const { speaker } = speakerObject;
+  const { id, last, first } = speaker;
   return (
     <div className="speaker-img d-flex flex-row justify-content-center align-items-center h-300">
       <img
         className="contain-fit"
-        src={`/images/speaker-${props.id}.jpg`}
+        src={`/images/speaker-${id}.jpg`}
         width="300"
         height="250"
-        alt={`${props.first} ${props.last}`}
+        alt={`${first} ${last}`}
       />
     </div>
   );
 }
 
-function Favourite({ favorite, onFavoriteToggle }) {
+function Favourite() {
+  const { speaker, updatedSpeakerInfo } = useContext(SpeakerContext);
   const [inTransition, setInTransition] = useState(false);
   function doneCallback() {
     console.log(
-      `in Favourite: doneCallback       ${new Date().getMilliseconds()}`,
+      `in Favourite: doneCallback${new Date().getMilliseconds()}`,
       setInTransition(false)
     );
   }
@@ -61,11 +62,16 @@ function Favourite({ favorite, onFavoriteToggle }) {
       <span
         onClick={function () {
           setInTransition(true);
-          return onFavoriteToggle(doneCallback);
+          updatedSpeakerInfo(
+            { ...speaker, favorite: !speaker.favorite },
+            doneCallback
+          );
         }}
       >
         <i
-          className={favorite === true ? "fa fa-star orange" : "fa fa-star "}
+          className={
+            speaker.favorite === true ? "fa fa-star orange" : "fa fa-star "
+          }
         ></i>{" "}
         Favourite{" "}
         {inTransition === true ? (
@@ -76,15 +82,9 @@ function Favourite({ favorite, onFavoriteToggle }) {
   );
 }
 
-function SpeakerInfo({
-  first,
-  last,
-  bio,
-  company,
-  twitterHandle,
-  favorite,
-  onFavoriteToggle,
-}) {
+function SpeakerInfo() {
+  const { speaker } = useContext(SpeakerContext);
+  const { first, last, bio, company, twitterHandle, favorite } = speaker;
   return (
     <div className="speaker-info">
       <div className="d-flex justify-content-between mb-3">
@@ -92,7 +92,7 @@ function SpeakerInfo({
           {first} {last}
         </h3>
       </div>
-      <Favourite favorite={favorite} onFavoriteToggle={onFavoriteToggle} />
+      <Favourite />
       <div>
         <p className="card-description">{bio}</p>
         <div className="social d-flex flex-row mt-4">
@@ -110,8 +110,7 @@ function SpeakerInfo({
   );
 }
 
-function Sessions(props) {
-  const { title, room } = props;
+function Sessions({ title, room }) {
   return (
     <div className="sessionBox card h-250">
       <Session title={title} room={room.name} />
